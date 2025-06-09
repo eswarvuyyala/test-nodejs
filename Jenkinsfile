@@ -1,12 +1,16 @@
-pipeline {
-    agent any
 
-    stages {
-        stage('Clone Repository') {
+ stages {
+
+        stage('Notify Build Start') {
             steps {
-                // Clone your GitHub repo
-                git url: 'https://github.com/eswarvuyyala/nodejs.git'
+                mail to: "${RECIPIENT}",
+                     subject: "🚀 Jenkins Build Started: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                     body: "The build has started.\n\nJob: ${env.JOB_NAME}\nBuild: #${env.BUILD_NUMBER}\nURL: ${env.BUILD_URL}"
             }
         }
-    }
-}
+
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/eswarvuyyala/nodejs.git', branch: 'main'
+            }
+        }
