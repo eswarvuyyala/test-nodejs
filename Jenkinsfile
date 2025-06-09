@@ -3,8 +3,16 @@ pipeline {
 
     environment {
         RECIPIENT = 'nageswara@logusims.com'
-        IMAGE_NAME = 'nginx-app'
-        IMAGE_TAG = 'V1.0.0'
+
+        AWS_REGION = 'ap-south-1'
+        ECR_ACCOUNT_ID = '923687682884'
+        ECR_REPO = 'react-app' // Your new ECR repo name
+
+        // You can use "latest" or build number for tags
+        IMAGE_TAG = "latest" // or "v1.0.${env.BUILD_NUMBER}"
+
+        // Full ECR image URI
+        IMAGE_NAME = "${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
     }
 
     stages {
@@ -23,24 +31,35 @@ URL: ${env.BUILD_URL}
 
         stage('Checkout Code') {
             steps {
-               git url: 'https://github.com/eswarvuyyala/nginx-app.git', branch: 'main'
+               git url: 'https://github.com/eswarvuyyala/react-app.git', branch: 'main'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "🔧 Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    echo "🔧 Building Docker image: ${IMAGE_NAME}"
+                    sh "docker build -t ${IMAGE_NAME} ."
                 }
             }
         }
 
-        stage('Trivy Scan') {
+        stage('Login to AWS ECR') {
             steps {
                 script {
-                    echo "🔍 Running Trivy scan..."
-                    sh "trivy image --format table --output trivy-report.txt ${IMAGE_NAME}:${IMAGE_TAG}"
+                    echo "🔑 Logging in to AWS ECR"
+                    sh """
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    """
+                }
+            }
+        }
+
+        stage('Push Docker Image to ECR') {
+            steps {
+                script {
+                    echo "🚀 Pushing Docker image to ECR: ${IMAGE_NAME}"
+                    sh "docker push ${IMAGE_NAME}"
                 }
             }
         }
@@ -57,17 +76,7 @@ URL: ${env.BUILD_URL}
 """
             }
         }
-
-        // Optional stage to send Trivy scan report via custom script
-        stage('Send Trivy Scan Report') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'GMAIL_SMTP_CREDENTIALS', usernameVariable: 'GMAIL_USER', passwordVariable: 'GMAIL_APP_PASSWORD')]) {
-                    writeFile file: 'send_trivy_report.py', text: '''# Your python script here'''
-                    sh 'python3 send_trivy_report.py'
-                }
-            }
-        }
-    } // End stages
+    }
 
     post {
         failure {
