@@ -41,7 +41,6 @@ URL: ${env.BUILD_URL}
                 script {
                     echo "🔍 Running Trivy scan..."
                     sh "trivy image --format table --output trivy-report.txt ${IMAGE_NAME}:${IMAGE_TAG}"
-                    archiveArtifacts artifacts: 'trivy-report.txt'
                 }
             }
         }
@@ -59,17 +58,16 @@ URL: ${env.BUILD_URL}
             }
         }
 
+        // Optional stage to send Trivy scan report via custom script
         stage('Send Trivy Scan Report') {
             steps {
-                emailext(
-                    to: "${RECIPIENT}",
-                    subject: "🔍 Trivy Scan Report for ${IMAGE_NAME}:${IMAGE_TAG}",
-                    body: "Please find attached the Trivy vulnerability scan report.",
-                    attachmentsPattern: 'trivy-report.txt'
-                )
+                withCredentials([usernamePassword(credentialsId: 'GMAIL_SMTP_CREDENTIALS', usernameVariable: 'GMAIL_USER', passwordVariable: 'GMAIL_APP_PASSWORD')]) {
+                    writeFile file: 'send_trivy_report.py', text: '''# Your python script here'''
+                    sh 'python3 send_trivy_report.py'
+                }
             }
         }
-    }
+    } // End stages
 
     post {
         failure {
