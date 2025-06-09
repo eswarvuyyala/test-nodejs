@@ -59,7 +59,7 @@ URL: ${env.BUILD_URL}
         }
 
         // Optional stage to send Trivy scan report via custom script
-        /*
+        
         stage('Send Trivy Scan Report') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'GMAIL_SMTP_CREDENTIALS', usernameVariable: 'GMAIL_USER', passwordVariable: 'GMAIL_APP_PASSWORD')]) {
