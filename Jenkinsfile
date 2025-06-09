@@ -23,7 +23,7 @@ URL: ${env.BUILD_URL}
 
         stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/eswarvuyyala/nginx-app.git', branch: 'main'
+               git url: 'https://github.com/eswarvuyyala/nginx-app.git', branch: 'main'
             }
         }
 
