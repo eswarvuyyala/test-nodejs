@@ -6,13 +6,14 @@ pipeline {
 
         AWS_REGION = 'ap-south-1'
         ECR_ACCOUNT_ID = '923687682884'
-        ECR_REPO = 'react-app' // Your new ECR repo name
+        ECR_REPO = 'react-app'  // Your ECR repo name
 
-        // You can use "latest" or build number for tags
-        IMAGE_TAG = "latest" // or "v1.0.${env.BUILD_NUMBER}"
+        // Use a version tag like v1.0.${BUILD_NUMBER}
+        IMAGE_TAG = "v1.0.${env.BUILD_NUMBER}"
 
-        // Full ECR image URI
-        IMAGE_NAME = "${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
+        // Docker image full name with version tag
+        IMAGE_NAME = "react-app"
+        ECR_IMAGE = "${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
     }
 
     stages {
@@ -39,7 +40,10 @@ URL: ${env.BUILD_URL}
             steps {
                 script {
                     echo "🔧 Building Docker image: ${IMAGE_NAME}"
+                    // Build image with local tag
                     sh "docker build -t ${IMAGE_NAME} ."
+                    // Tag with versioned tag for ECR
+                    sh "docker tag ${IMAGE_NAME}:latest ${ECR_IMAGE}"
                 }
             }
         }
@@ -58,8 +62,8 @@ URL: ${env.BUILD_URL}
         stage('Push Docker Image to ECR') {
             steps {
                 script {
-                    echo "🚀 Pushing Docker image to ECR: ${IMAGE_NAME}"
-                    sh "docker push ${IMAGE_NAME}"
+                    echo "🚀 Pushing Docker image to ECR: ${ECR_IMAGE}"
+                    sh "docker push ${ECR_IMAGE}"
                 }
             }
         }
