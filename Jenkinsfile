@@ -11,7 +11,7 @@ pipeline {
         // Use a version tag like v1.0.${BUILD_NUMBER}
         IMAGE_TAG = "v1.0.${env.BUILD_NUMBER}"
 
-        // Docker image full name with version tag
+        //h Docker image full name with version tag
         IMAGE_NAME = "react-app"
         ECR_IMAGE = "${ECR_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
     }
