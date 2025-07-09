@@ -9,4 +9,4 @@
   <packaging>pom</packaging>
 
   <properties>
-    <sonar
+    <sonar.projectKey>
