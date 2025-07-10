@@ -34,6 +34,15 @@ pipeline {
             }
         }
 
+        stage('Trivy Scan Image') {
+            steps {
+                script {
+                    echo "🔍 Scanning image with Trivy: ${ECR_IMAGE}"
+                    sh "trivy image --exit-code 0 --severity HIGH,CRITICAL ${ECR_IMAGE}"
+                }
+            }
+        }
+
         stage('Login to AWS ECR') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS_CREDENTIALS']]) {
