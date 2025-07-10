@@ -2,26 +2,26 @@ pipeline {
     agent any
 
     environment {
-        SONAR_HOST_URL = 'http://13.201.203.112:9000'
+        IMAGE_NAME = 'react-app'
+        GIT_REPO = 'https://github.com/eswarvuyyala/react-app.git'
+        GIT_BRANCH = 'main'
     }
 
     stages {
         stage('Clone Git Repo') {
             steps {
-                git url: 'https://github.com/eswarvuyyala/react-app.git', branch: 'main'
+                git url: "${GIT_REPO}", branch: "${GIT_BRANCH}"
             }
         }
 
-        stage('SonarQube Scan') {
+        stage('Build Docker Image') {
             steps {
-                withCredentials([string(credentialsId: 'Sonar-token-scanning-test', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.projectKey=react-app \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=$SONAR_HOST_URL \
-                          -Dsonar.login=$SONAR_TOKEN
-                    '''
+                script {
+                    echo "🧹 Checking for existing Docker image: ${IMAGE_NAME}"
+                    sh "docker rmi -f ${IMAGE_NAME} || true"
+
+                    echo "🐳 Building Docker image: ${IMAGE_NAME}"
+                    sh "docker build -t ${IMAGE_NAME} ."
                 }
             }
         }
